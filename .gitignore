@@ -1,0 +1,6 @@
+__pycache__/
+*.pkl
+*.pyc
+uploads/
+known_faces/
+.env

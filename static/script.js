@@ -4,7 +4,9 @@
  * animated gauges, and all API integrations
  */
 
-const API_BASE = "";
+// Auto-detect if running from file:// (no server) or from a Flask server
+const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
+const API_BASE = IS_FILE_PROTOCOL ? '' : '';
 
 // ==========================================
 // THREE.JS 3D PARTICLE FACE MESH
@@ -265,6 +267,10 @@ function setLoading(btn, loading) {
 }
 
 async function apiCall(endpoint, options = {}) {
+    if (IS_FILE_PROTOCOL) {
+        console.warn("Running in demo mode (file://). API calls are not available.");
+        return { success: false, message: "Server not running. Please start the Flask server (python app.py) to use this feature, or open via http://localhost:5000" };
+    }
     try {
         const response = await fetch(`${API_BASE}${endpoint}`, options);
         const data = await response.json();
@@ -348,6 +354,13 @@ async function checkHealth() {
     const statusDot = document.querySelector(".status-dot");
     const statusText = document.querySelector(".status-text");
 
+    if (IS_FILE_PROTOCOL) {
+        statusDot.classList.remove("online");
+        statusDot.classList.add("offline");
+        statusText.textContent = "Demo Mode";
+        return;
+    }
+
     const data = await apiCall("/api/health");
 
     if (data.status === "ok") {
@@ -362,7 +375,9 @@ async function checkHealth() {
 }
 
 checkHealth();
-setInterval(checkHealth, 30000);
+if (!IS_FILE_PROTOCOL) {
+    setInterval(checkHealth, 30000);
+}
 
 // ==========================================
 // FILE UPLOAD HELPERS

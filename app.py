@@ -57,6 +57,21 @@ def index():
     return send_from_directory("static", "index.html")
 
 
+@app.route("/<path:filename>")
+def serve_static_root(filename):
+    """Serve static files from root path for relative URL compatibility.
+    This allows index.html to use ./style.css and ./script.js
+    which works both when opened directly (file://) and via Flask server.
+    """
+    import os
+    static_path = os.path.join(app.static_folder, filename)
+    if os.path.isfile(static_path):
+        return send_from_directory("static", filename)
+    # Fall through to 404 for non-existent files
+    from flask import abort
+    abort(404)
+
+
 @app.route("/api/health", methods=["GET"])
 def health_check():
     """Health check endpoint."""
